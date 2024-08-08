@@ -1,0 +1,596 @@
+unit Email;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.WinXPickers,
+  System.Zip, Vcl.Imaging.pngimage, Vcl.ExtCtrls, ACBrBase, ACBrMail,
+  Vcl.FileCtrl, Vcl.ComCtrls, DateUtils, Vcl.Buttons;
+
+type
+  TForm3 = class(TForm)
+    Panel1: TPanel;
+    Label1: TLabel;
+    Panel2: TPanel;
+    Image1: TImage;
+    Panel3: TPanel;
+    Panel4: TPanel;
+    Label2: TLabel;
+    Panel5: TPanel;
+    data: TDatePicker;
+    Label3: TLabel;
+    Panel6: TPanel;
+    textContador: TEdit;
+    Label4: TLabel;
+    Panel7: TPanel;
+    Panel8: TPanel;
+    Label5: TLabel;
+    radioDezembro: TRadioButton;
+    radioNovembro: TRadioButton;
+    radioOutubro: TRadioButton;
+    radioSetembro: TRadioButton;
+    radioAgosto: TRadioButton;
+    radioJulho: TRadioButton;
+    radioJunho: TRadioButton;
+    radioMaio: TRadioButton;
+    radioAbril: TRadioButton;
+    radioMarço: TRadioButton;
+    radioFevereiro: TRadioButton;
+    radioJaneiro: TRadioButton;
+    Panel9: TPanel;
+    Panel10: TPanel;
+    Label6: TLabel;
+    ACBrMail1: TACBrMail;
+    lblStatus: TLabel;
+    Panel11: TPanel;
+    Shape1: TShape;
+    SpeedButton1: TSpeedButton;
+    Label7: TLabel;
+    Label8: TLabel;
+    lblstatusNfe: TLabel;
+
+    procedure lertxt;
+    procedure configemail;
+    procedure conatdor;
+    procedure compactadorNfe;
+    procedure save;
+    procedure recuperarValorCliente;
+    procedure compactador ;
+    procedure recuperar;
+    procedure recuperaAno;
+     procedure EventoOnProgress(Sender: TObject; FileName: string; Header: TZipHeader; Position: Int64);
+    procedure FormShow(Sender: TObject);
+    procedure SpeedButton1Click(Sender: TObject);
+    private
+    { Private declarations }
+      public
+        var
+    globalcaminho: string;
+    informacaoCliente:string;
+    globalMes:string;
+    globalAno:Word;
+    { Public declarations }
+  end;
+
+var
+  Form3: TForm3;
+
+implementation
+
+uses
+  Vcl.Dialogs, System.SysUtils;
+
+{$R *.dfm}
+
+procedure TForm3.compactador;
+var
+  ZipFile: TZipFile;
+  Arquivo: string;
+  SearchRec: TSearchRec;
+  FileDate: TDateTime;
+  DirectoryPath: string;
+  StartDate, EndDate: TDateTime;
+  Year: Word;
+begin
+  Screen.Cursor := crSQLWait;
+  lblStatus.Font.Color := RGB(245, 188, 66);
+
+  DirectoryPath := 'C:\Syspdv\CFe\vendas\';    //impossivel isso
+
+
+  if not DirectoryExists(DirectoryPath) then
+  begin
+    ShowMessage('Diretório não encontrado: ' + DirectoryPath);
+    Screen.Cursor := crDefault;
+    lblStatus.Caption := 'Diretório não encontrado';
+    lblStatus.Font.Color := clBlack;
+    Exit;
+  end;
+
+  // Obtém o ano do DateTimePicker
+  Year := YearOf(data.Date);
+
+  // Define as datas de início e fim para o intervalo com base no RadioButton selecionado
+  if radioAgosto.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 8, 1);
+    EndDate := EncodeDate(globalAno, 8, 31);
+    globalMes:='Agosto';
+  end
+  else if radioJaneiro.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 1, 1);
+    EndDate := EncodeDate(globalAno, 1, 31);
+    globalMes:='Janeiro';
+  end
+  else if radioFevereiro.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 2, 1);
+    EndDate := EncodeDate(globalAno, 2, 29);
+    globalMes:='Fevereiro';
+  end
+  else if radioMarço.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 3, 1);
+    EndDate := EncodeDate(globalAno, 3, 31);
+    globalMes:='Março';
+  end
+  else if radioAbril.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 4, 1);
+    EndDate := EncodeDate(globalAno, 4, 30);
+    globalMes:='Abril';
+  end
+  else if radioMaio.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 5, 1);
+    EndDate := EncodeDate(globalAno, 5, 31);
+    globalMes:='Mario';
+  end
+  else if radioJunho.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 6, 1);
+    EndDate := EncodeDate(globalAno, 6, 30);
+    globalMes:='Junho';
+  end
+  else if radioJulho.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 7, 1);
+    EndDate := EncodeDate(globalAno, 7, 31);
+    globalMes:='Julho';
+  end
+  else if radioSetembro.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 9, 1);
+    EndDate := EncodeDate(globalAno, 9, 30);
+    globalMes:='Setembro';
+  end
+  else if radioOutubro.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 10, 1);
+    EndDate := EncodeDate(globalAno, 10, 31);
+    globalMes:='Outubro';
+  end
+  else if radioNovembro.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 11, 1);
+    EndDate := EncodeDate(globalAno, 11, 30);
+    globalMes:='Novembro';
+  end
+  else if radioDezembro.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 12, 1);
+    EndDate := EncodeDate(globalAno, 12, 31);
+    globalMes:='Dezembro';
+  end
+  else
+  begin
+    // Se nenhum RadioButton estiver selecionado, não faz nada ou define um intervalo padrão
+    ShowMessage('Por favor, selecione um intervalo de datas.');
+    Screen.Cursor := crDefault;
+
+    lblStatus.Caption := 'Aguardando a Seleção da Data';
+    lblStatus.Font.Color := clBlack;
+    Exit;
+  end;
+
+
+  // Cria uma instância da classe TZipFile
+  ZipFile := TZipFile.Create;
+  try
+
+    lblStatus.Caption := 'Aguarde....';
+    ZipFile.OnProgress := EventoOnProgress;
+    try
+      ZipFile.Open('C:\Email\ArquivosCompactados.zip', zmWrite); // Onde eles vão
+
+
+      if FindFirst(DirectoryPath + '*.*', faAnyFile, SearchRec) = 0 then
+
+      begin
+        repeat
+          if (SearchRec.Attr and faDirectory = 0) then
+          begin
+            // Usa FileAge para obter a data de criação do arquivo
+            FileDate := FileDateToDateTime(FileAge(DirectoryPath + SearchRec.Name));
+            // Verifica se a data está dentro do intervalo
+            if (DateOf(FileDate) >= StartDate) and (DateOf(FileDate) <= EndDate) then
+            begin
+              ZipFile.Add(DirectoryPath + SearchRec.Name);
+            end;
+          end;
+        until FindNext(SearchRec) <> 0;
+        FindClose(SearchRec);
+      end;
+      MessageDlg('Compactação concluída!', mtInformation, [mbOK], 0);
+    except
+      on E: Exception do
+        ShowMessage('Erro ao abrir o arquivo ZIP: ' + E.Message);
+    end;
+  finally
+    Screen.Cursor := crDefault;
+    lblStatus.Font.Color := clRed;
+    lblStatus.Caption := 'Finalizado';
+    ZipFile.Free;
+  end;
+end;
+
+procedure TForm3.compactadorNfe;
+var
+  ZipFile: TZipFile;
+  Arquivo: string;
+  SearchRec: TSearchRec;
+  FileDate: TDateTime;
+  DirectoryPath: string;
+  StartDate, EndDate: TDateTime;
+  Year: Word;
+begin
+  Screen.Cursor := crSQLWait;
+  lblStatus.Font.Color := RGB(245, 188, 66);
+
+  DirectoryPath := 'C:\Syspdv\Nfe\XmlDestinatario\';    //impossivel isso
+
+
+  if not DirectoryExists(DirectoryPath) then
+  begin
+    ShowMessage('Diretório não encontrado: ' + DirectoryPath);
+    Screen.Cursor := crDefault;
+    lblstatusNfe.Caption := 'Diretório não encontrado';
+    lblstatusNfe.Font.Color := clBlack;
+    Exit;
+  end;
+
+  // Obtém o ano do DateTimePicker
+  Year := YearOf(data.Date);
+
+  // Define as datas de início e fim para o intervalo com base no RadioButton selecionado
+  if radioAgosto.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 8, 1);
+    EndDate := EncodeDate(globalAno, 8, 31);
+    globalMes:='Agosto';
+  end
+  else if radioJaneiro.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 1, 1);
+    EndDate := EncodeDate(globalAno, 1, 31);
+    globalMes:='Janeiro';
+  end
+  else if radioFevereiro.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 2, 1);
+    EndDate := EncodeDate(globalAno, 2, 29);
+    globalMes:='Fevereiro';
+  end
+  else if radioMarço.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 3, 1);
+    EndDate := EncodeDate(globalAno, 3, 31);
+    globalMes:='Março';
+  end
+  else if radioAbril.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 4, 1);
+    EndDate := EncodeDate(globalAno, 4, 30);
+    globalMes:='Abril';
+  end
+  else if radioMaio.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 5, 1);
+    EndDate := EncodeDate(globalAno, 5, 31);
+    globalMes:='Mario';
+  end
+  else if radioJunho.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 6, 1);
+    EndDate := EncodeDate(globalAno, 6, 30);
+    globalMes:='Junho';
+  end
+  else if radioJulho.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 7, 1);
+    EndDate := EncodeDate(globalAno, 7, 31);
+    globalMes:='Julho';
+  end
+  else if radioSetembro.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 9, 1);
+    EndDate := EncodeDate(globalAno, 9, 30);
+    globalMes:='Setembro';
+  end
+  else if radioOutubro.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 10, 1);
+    EndDate := EncodeDate(globalAno, 10, 31);
+    globalMes:='Outubro';
+  end
+  else if radioNovembro.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 11, 1);
+    EndDate := EncodeDate(globalAno, 11, 30);
+    globalMes:='Novembro';
+  end
+  else if radioDezembro.Checked then
+  begin
+    StartDate := EncodeDate(globalAno, 12, 1);
+    EndDate := EncodeDate(globalAno, 12, 31);
+    globalMes:='Dezembro';
+  end
+  else
+  begin
+    // Se nenhum RadioButton estiver selecionado, não faz nada ou define um intervalo padrão
+    ShowMessage('Por favor, selecione um intervalo de datas.');
+    Screen.Cursor := crDefault;
+
+    lblStatus.Caption := 'Aguardando a Seleção da Data';
+    lblStatus.Font.Color := clBlack;
+    Exit;
+  end;
+
+
+  // Cria uma instância da classe TZipFile
+  ZipFile := TZipFile.Create;
+  try
+
+    lblStatus.Caption := 'Aguarde....';
+    ZipFile.OnProgress := EventoOnProgress;
+    try
+      ZipFile.Open('C:\Email\ArquivosCompactados.zip', zmWrite); // Onde eles vão
+
+
+      if FindFirst(DirectoryPath + '*.*', faAnyFile, SearchRec) = 0 then
+
+      begin
+        repeat
+          if (SearchRec.Attr and faDirectory = 0) then
+          begin
+            // Usa FileAge para obter a data de criação do arquivo
+            FileDate := FileDateToDateTime(FileAge(DirectoryPath + SearchRec.Name));
+            // Verifica se a data está dentro do intervalo
+            if (DateOf(FileDate) >= StartDate) and (DateOf(FileDate) <= EndDate) then
+            begin
+              ZipFile.Add(DirectoryPath + SearchRec.Name);
+            end;
+          end;
+        until FindNext(SearchRec) <> 0;
+        FindClose(SearchRec);
+      end;
+      MessageDlg('Compactação concluída!', mtInformation, [mbOK], 0);
+    except
+      on E: Exception do
+        ShowMessage('Erro ao abrir o arquivo ZIP: ' + E.Message);
+    end;
+  finally
+    Screen.Cursor := crDefault;
+    lblStatus.Font.Color := clRed;
+    lblStatus.Caption := 'Finalizado';
+    ZipFile.Free;
+  end;
+end;
+
+procedure TForm3.conatdor;
+var
+  FileName: string;
+  FileContent: TStringList;
+  Line: string;
+  Key, Value: string;
+begin
+  FileName := 'F:\arquivo.txt';
+   //arquivo onde ele recupera os dados
+
+  if FileExists(FileName) then
+  begin
+    FileContent := TStringList.Create;
+    try
+      FileContent.LoadFromFile(FileName);
+
+      // Procura pela chave 'Contador' no arquivo
+      for Line in FileContent do
+      begin
+        if Pos(':', Line) > 0 then
+        begin
+          Key := Trim(Copy(Line, 1, Pos(':', Line) - 1));
+          Value := Trim(Copy(Line, Pos(':', Line) + 1, Length(Line)));
+
+          if SameText(Key, 'Contador') then
+          begin
+            ShowMessage('Email do Contador: ' + Value);
+            Exit;
+          end;
+        end;
+      end;
+
+      ShowMessage('Chave "Contador" não encontrada no arquivo.');
+    finally
+      FileContent.Free;
+    end;
+  end
+  else
+    ShowMessage('Arquivo não encontrado!');
+end;
+
+procedure TForm3.configemail;
+begin
+  // Configurações do servidor SMTP
+  ACBrMail1.Host := 'smtp-mail.outlook.com';
+  ACBrMail1.Port := '587';
+  ACBrMail1.Username := 'MultimacXML@outlook.com';
+  ACBrMail1.Password := 'TImultimac# 16';  // Remova espaços extras, se houver
+  ACBrMail1.SetTLS := True;  // Use True para TLS, ou False para não usar
+
+  // Configurações do e-mail
+  ACBrMail1.From := 'MultimacXML@outlook.com';  // O e-mail remetente
+  ACBrMail1.AddAddress(textContador.text);  // Adicione o destinatário
+  ACBrMail1.Subject := 'Arquivo XML do mês:  ' + globalMes;
+ ACBrMail1.IsHTML := True;  // Define que o corpo do e-mail é HTML
+
+  // Corpo do e-mail com assinatura em HTML
+  ACBrMail1.Body.Clear;
+  ACBrMail1.Body.Add('<p>Olá,</p>');
+  ACBrMail1.Body.Add('<p>Segue o conteúdo solicitado.</p>');
+  ACBrMail1.Body.Add('<p>Se houver qualquer problema favor retornar,</p>');
+  ACBrMail1.Body.Add('<p>Multimac, Bauru - Email - MultimacNfe@outlook.com - Telefone 14 - 3879 - 8010</p>');
+ // ACBrMail1.Body.Add('<p><img src="cid:assinatura"></p>'); // Incorporar assinatura com CID
+
+  // Adiciona a assinatura como anexo com CID
+
+
+  ACBrMail1.AddAttachment('C:\Email\ArquivosCompactados.zip'); // Substitua pelo caminho do arquivo que deseja anexar
+  try
+    ACBrMail1.Send;
+    ShowMessage('E-mail enviado com sucesso!');
+  except
+    on E: Exception do
+      ShowMessage('Erro ao enviar e-mail: ' + E.Message);
+  end;
+end;
+
+procedure TForm3.EventoOnProgress(Sender: TObject; FileName: string;
+  Header: TZipHeader; Position: Int64);
+begin
+
+ Application.ProcessMessages;
+
+  // Exibe a porcentagem de compactação do arquivo
+  // Label7.Caption := FormatFloat('#.## %', Position / Header.UncompressedSize * 100);
+
+end;
+
+procedure TForm3.FormShow(Sender: TObject);
+begin
+recuperaAno;
+recuperar;
+
+end;
+
+procedure TForm3.lertxt;
+var
+  FileName: string;
+  StreamReader: TStreamReader;
+  FileContent, Dir: string;
+begin
+  Dir := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)));
+  FileName := Dir + 'arquivo';
+
+  if FileExists(FileName) then
+  begin
+    StreamReader := TStreamReader.Create(FileName);
+    try
+      FileContent := StreamReader.ReadToEnd;
+      globalcaminho := 'Conteúdo do arquivo: ' + sLineBreak + FileContent;
+    finally
+      StreamReader.Free;
+    end;
+
+
+  end
+  else
+    ShowMessage('Arquivo não encontrado!');
+end;
+
+ function ObterTamanhoArquivo(const NomeArquivo: string): integer;
+var
+  StreamArquivo: TFileStream;
+begin
+  StreamArquivo := TFileStream.Create(NomeArquivo, fmOpenRead);
+  try
+    result := StreamArquivo.Size;
+  finally
+    StreamArquivo.Free;
+  end;
+end;
+
+procedure TForm3.recuperaAno;
+begin
+
+  globalAno:=YearOf(data.Date);
+ // ShowMessage('Ano selecionado: ' + IntToStr(globalAno));
+
+end;
+
+procedure TForm3.recuperar;
+var
+  Texto: string;
+  Arquivo: TextFile;
+begin
+  // Substitua 'C:\caminho\para\seuarquivo.txt' pelo caminho real do seu arquivo
+  AssignFile(Arquivo, 'F:\Email\contador.txt');
+  try
+    Reset(Arquivo);
+    ReadLn(Arquivo, Texto);  // Lê a primeira linha do arquivo
+    textContador.Text := Texto;    // Atribui o conteúdo lido ao TEdit
+  finally
+    CloseFile(Arquivo);
+  end;
+end;
+
+procedure TForm3.recuperarValorCliente;
+var
+  Texto: string;
+  Arquivo: TextFile;
+begin
+
+  AssignFile(Arquivo, 'C:\Email\cliente.txt');
+  try
+    Reset(Arquivo);
+    ReadLn(Arquivo, Texto);  // Lê a primeira linha do arquivo
+    informacaoCliente := Texto;    // Atribui o conteúdo lido a variavel global
+  finally
+    CloseFile(Arquivo);
+  end;
+end;
+
+procedure TForm3.save;
+var
+  FileName: string;
+  FileContent: TStringList;
+begin
+  FileName := 'F:\Email\contador.txt'; // Defina o caminho onde deseja salvar o arquivo
+
+  FileContent := TStringList.Create;
+  try
+    // Adiciona o conteúdo do TEdit ao TStringList
+    FileContent.Add(textContador.Text);
+
+    // Salva o TStringList no arquivo
+    FileContent.SaveToFile(FileName);
+
+    ShowMessage('Texto salvo com sucesso!');
+  except
+    on E: Exception do
+      ShowMessage('Erro ao salvar o arquivo: ' + E.Message);
+  end;
+  FileContent.Free;
+end;
+
+procedure TForm3.SpeedButton1Click(Sender: TObject);
+begin
+compactador;
+recuperarValorCliente;
+configemail;
+save;
+end;
+
+end.
+
